@@ -1,4 +1,4 @@
-﻿import * as $fs from "fs";
+import * as $fs from "fs";
 import * as $path from "path";
 import * as $glob from "glob";
 import * as $minimatch from "minimatch";
@@ -40,8 +40,7 @@ export class Args
             case "--rebuild":       this._rebuild = true;       break;
             case "--release":       this._release = true;       break;
             case "/Configuration":
-                switch(argn[1])
-                {
+                switch(argn[1]) {
                 case "Debug":       this._release = false;      break;
                 case "Release":     this._release = true;       break;
                 default:            throw new Error("Invalid configuration option: '" + argn[1] + "'.");
@@ -443,8 +442,7 @@ export function isUpdateToDate(dstfn:string, ...srcfns:(string|string[])[] )
     for (const srcfn of srcfns) {
         if (srcfn) {
             if (Array.isArray(srcfn)) {
-                for (const sfn of srcfn)
-                {
+                for (const sfn of srcfn) {
                     const s = file_stat(sfn);
 
                     if (!(s && s.mtime.getTime() < dst_s.mtime.getTime()))
@@ -524,8 +522,7 @@ export function path_make(fn:string)
     try {
         $fs.mkdirSync(fn);
     } catch(e) {
-        switch(e.code)
-        {
+        switch(e.code) {
         case "EEXIST":
             return;
 

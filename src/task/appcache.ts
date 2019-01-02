@@ -1,4 +1,4 @@
-﻿import * as $fs from "fs";
+import * as $fs from "fs";
 import * as $path from "path";
 import * as $crypto from "crypto";
 import * as $main from "../main";
@@ -42,8 +42,7 @@ export function run(build:$util.Build, config:$main.IBuildAppCache[])
 
         build.define_dstfile(dst);
 
-        if (!(statemap && $lib.compare_recursive(statemap[dst], newState)))
-        {
+        if (!(statemap && $lib.compare_recursive(statemap[dst], newState))) {
             build.logBuildFile(dst);
             const   md5sum = $crypto.createHash("sha256");
 

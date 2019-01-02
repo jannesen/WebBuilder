@@ -1,4 +1,4 @@
-﻿interface IHashTableData<TKey, TData>
+interface IHashTableData<TKey, TData>
 {
     hash:       number;
     key:        TKey;
@@ -116,8 +116,7 @@ export function createMap<T>():Map<T> {
 
 export function hash_of(o:any):number
 {
-    switch(typeof o)
-    {
+    switch(typeof o) {
     case "object":
         {
             let hash = 0;
@@ -162,8 +161,7 @@ export function compare_recursive(o1:any, o2:any):boolean
     if (typeof o1 !== typeof o2)
         return false;
 
-    if (typeof o1 === "object")
-    {
+    if (typeof o1 === "object") {
         if (Array.isArray(o1)) {
             if (o1.length !== o2.length)
                 return false;

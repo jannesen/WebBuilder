@@ -1,4 +1,4 @@
-﻿import * as $fs from "fs";
+import * as $fs from "fs";
 import * as $path from "path";
 import * as $string_decoder from "string_decoder";
 import * as $util from "../lib/util.js";
