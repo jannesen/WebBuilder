@@ -1,4 +1,4 @@
-﻿interface IHashTableData<TKey, TData>
+interface IHashTableData<TKey, TData>
 {
     hash:       number;
     key:        TKey;

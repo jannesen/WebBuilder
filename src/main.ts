@@ -1,4 +1,4 @@
-﻿import * as $util from "./lib/util.js";
+import * as $util from "./lib/util.js";
 
 export interface IBuildConfig
 {
