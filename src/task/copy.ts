@@ -1,4 +1,4 @@
-import * as $path from "path";
+﻿import * as $path from "path";
 import * as $main from "../main";
 import * as $util from "../lib/util";
 

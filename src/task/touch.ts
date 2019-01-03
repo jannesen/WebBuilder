@@ -1,4 +1,4 @@
-import * as $main from "../main";
+﻿import * as $main from "../main";
 import * as $util from "../lib/util";
 
 export function run(build:$util.Build, config:$main.BuildTouch)

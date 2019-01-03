@@ -1,4 +1,4 @@
-import * as $fs from "fs";
+﻿import * as $fs from "fs";
 import * as $main from "../main";
 import * as $lib from "../lib/lib";
 import * as $util from "../lib/util";
