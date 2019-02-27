@@ -117,8 +117,7 @@ export function createMap<T>():Map<T> {
 export function hash_of(o:any):number
 {
     switch(typeof o) {
-    case "object":
-        {
+    case "object": {
             let hash = 0;
 
             if (Array.isArray(o)) {
@@ -140,8 +139,7 @@ export function hash_of(o:any):number
     case "number":
         return Math.abs(o) | 0;
 
-    case "string":
-        {
+    case "string": {
             let hash = 0;
 
             for (let i = 0, len = o.length; i < len; i++) {
