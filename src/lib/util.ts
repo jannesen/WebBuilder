@@ -21,6 +21,7 @@ export class Args
 {
     private     _rebuild:               boolean;
     private     _release:               boolean;
+    private     _flavor:                string;
 
     public get  rebuild()
     {
@@ -30,20 +31,37 @@ export class Args
     {
         return this._release;
     }
+    public get  flavor()
+    {
+        return this._flavor;
+    }
 
     constructor()
     {
         const argv = process.argv;
+        this._rebuild = false;
+        this._release = null;
+        this._flavor  = "";
+
         for (let i = 2 ; i < argv.length ; ++i) {
             const argn = argv[i].split("=", 2);
             switch(argn[0]) {
             case "--rebuild":       this._rebuild = true;       break;
             case "--release":       this._release = true;       break;
-            case "/Configuration":
-                switch(argn[1]) {
-                case "Debug":       this._release = false;      break;
-                case "Release":     this._release = true;       break;
-                default:            throw new Error("Invalid configuration option: '" + argn[1] + "'.");
+            case "/Configuration": {
+                    let   c = argn[1];
+                    const s = c.indexOf("-");
+
+                    if (s >= 0) {
+                        this._flavor = c.substr(0, s);
+                        c = c.substr(s + 1);
+                    }
+
+                    switch(c) {
+                    case "Debug":       this._release = false;      break;
+                    case "Release":     this._release = true;       break;
+                    default:            throw new Error("Invalid configuration option: '" + argn[1] + "'.");
+                    }
                 }
                 break;
             default:                throw new Error("Unknown option: '" + argn[0] + "'.");
@@ -56,6 +74,7 @@ export class Build
 {
     private     _rebuild:               boolean;
     private     _release:               boolean;
+    private     _flavor:                string;
     private     _lint:                  boolean;
     private     _diagoutput:            boolean;
     private     _paths:                 $main.IPaths;
@@ -77,6 +96,10 @@ export class Build
     public get  release()
     {
         return this._release;
+    }
+    public get  flavor()
+    {
+        return this._flavor;
     }
     public get  lint()
     {
@@ -107,6 +130,7 @@ export class Build
     {
         this._rebuild              = false;
         this._release              = global.release;
+        this._flavor               = global.flavor;
         this._lint                 = global.lint;
         this._diagoutput           = global.diagoutput || false;
         this._paths                = global.paths;
@@ -122,6 +146,7 @@ export class Build
 
         if ($main.args.rebuild !== undefined)   this._rebuild = $main.args.rebuild;
         if ($main.args.release !== undefined)   this._release = $main.args.release;
+        if ($main.args.flavor  !== undefined)   this._flavor  = $main.args.flavor;
 
         if (this._release    === undefined)                 this._release = false;
         if (this._lint       === undefined)                 this._lint    = this._release;
@@ -143,6 +168,7 @@ export class Build
             !this._state        ||
             !this._state.global ||
             this._state.global.release        !== this._release        ||
+            this._state.global.flavor         !== this._flavor         ||
             this._state.global.lint           !== this._lint           ||
             this._state.global.sourcemap_path !== this._sourcemap_path ||
             this._state.global.sourcemap_root !== this._sourcemap_root) {
@@ -153,6 +179,7 @@ export class Build
 
         this._state.global = {
                                 release:            this._release,
+                                flavor:             this._flavor,
                                 lint:               this._lint,
                                 sourcemap_path:     this._sourcemap_path,
                                 sourcemap_root:     this._sourcemap_root

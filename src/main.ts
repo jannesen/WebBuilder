@@ -19,6 +19,7 @@ export interface IBuildGlobal
 {
     rebuild?:               boolean;
     release?:               boolean;
+    flavor?:                string;
     lint?:                  boolean;
     diagoutput?:            boolean;
     paths:                  IPaths;
