@@ -22,16 +22,13 @@ export function build_sass(build:$util.Build, item:$task.ISassItem)
                                                     indentedSyntax:     false,
                                                     omitSourceMapUrl:   false,
                                                     importer:           (url:string, prev:string, done:(r:any) => void) => {
+                                                                            build.logDebug("import: " + url);
                                                                             try {
-                                                                                if (url.endsWith(".scss")) {
-                                                                                    return {
-                                                                                        file: url.startsWith("$")
-                                                                                            ? build.resolveName(url)
-                                                                                            : $util.path_join($path.dirname(prev), url)
-                                                                                    };
-                                                                                } else {
-                                                                                    return url;
-                                                                                }
+                                                                                return {
+                                                                                    file: url.startsWith("$")
+                                                                                        ? build.resolveName(url)
+                                                                                        : $util.path_join($path.dirname(prev), url)
+                                                                                };
                                                                             } catch (e) {
                                                                                 return e;
                                                                             }

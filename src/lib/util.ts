@@ -19,9 +19,11 @@ export interface ISrcTarget
 
 export class Args
 {
-    private     _rebuild:               boolean;
-    private     _release:               boolean;
-    private     _flavor:                string;
+    private     _rebuild:               boolean|undefined;
+    private     _release:               boolean|undefined;
+    private     _flavor:                string|undefined;
+    private     _diagoutput:            boolean|undefined;
+
 
     public get  rebuild()
     {
@@ -35,19 +37,20 @@ export class Args
     {
         return this._flavor;
     }
+    public get  diagoutput() {
+        return this._diagoutput;
+    }
 
     constructor()
     {
         const argv = process.argv;
-        this._rebuild = false;
-        this._release = false;
-        this._flavor  = "";
 
         for (let i = 2 ; i < argv.length ; ++i) {
             const argn = argv[i].split("=", 2);
             switch(argn[0]) {
             case "--rebuild":       this._rebuild = true;       break;
             case "--release":       this._release = true;       break;
+            case "--diagoutput":    this._diagoutput = true;    break;
             case "/Configuration": {
                     let   c = argn[1];
                     const s = c.indexOf("-");
@@ -105,6 +108,9 @@ export class Build
     {
         return this._lint;
     }
+    public get  diagoutput() {
+        return this._diagoutput;
+    }
     public get  sourcemap()
     {
         return typeof this._sourcemap_path === "string";
@@ -132,11 +138,11 @@ export class Build
         let release              = global.release;
         let flavor               = global.flavor;
         let lint                 = global.lint;
+        let diagoutput           = global.diagoutput || false;
         let sourcemap_path       = global.sourcemap_path;
         let sourcemap_root       = global.sourcemap_root;
         let sourcemap_inlinesrc  = global.sourcemap_inlinesrc;
 
-        this._diagoutput          = global.diagoutput || false;
         this._src_path            = path_join(global.src_path);
         this._dst_path            = path_join(global.dst_path);
         this._state_file          = path_join(global.state_file || (this._dst_path + "/build.state"));
@@ -144,9 +150,10 @@ export class Build
         this._state               = {};
         this._targets             = {};
 
-        if ($main.args.rebuild !== undefined)   rebuild = $main.args.rebuild;
-        if ($main.args.release !== undefined)   release = $main.args.release;
-        if ($main.args.flavor  !== undefined)   flavor  = $main.args.flavor;
+        if ($main.args.rebuild    !== undefined)   rebuild    = $main.args.rebuild;
+        if ($main.args.release    !== undefined)   release    = $main.args.release;
+        if ($main.args.flavor     !== undefined)   flavor     = $main.args.flavor;
+        if ($main.args.diagoutput !== undefined)   diagoutput = $main.args.diagoutput;
 
         if (release    === undefined)           release = false;
         if (lint       === undefined)           lint    = release;
@@ -159,6 +166,7 @@ export class Build
         this._release              = release;
         this._flavor               = flavor;
         this._lint                 = lint;
+        this._diagoutput           = diagoutput;
         this._paths                = global.paths;
         this._sourcemap_path       = sourcemap_path;
         this._sourcemap_root       = sourcemap_root;
@@ -432,6 +440,12 @@ export class Build
             throw new Error("Invalid state this._curTask is undefined.");
         }
         this._state[this._curTask] = state;
+    }
+    public      logDebug(msg:string)
+    {
+        if (this._diagoutput) {
+            console.log("Debug " + this._curTask + ": " + msg);
+        }
     }
     public      logBuildFile(fn:string)
     {
