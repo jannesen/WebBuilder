@@ -19,7 +19,7 @@ interface IFileInfo
 
 export function run(build:$util.Build, config:$main.IBuildAppCache[])
 {
-    let statemap:$lib.Map<IAppCacheFile>;
+    let statemap:$lib.Map<IAppCacheFile>|undefined;
 
     if (!build.rebuild) {
         statemap = $lib.createMap<IAppCacheFile>();
@@ -37,7 +37,7 @@ export function run(build:$util.Build, config:$main.IBuildAppCache[])
 
         const   newState = {
                                 dst:    dst,
-                                cache:  cache_files.map((fn) => ({ fn:fn, ts:$util.file_stat(fn).mtime.getTime() }))
+                                cache:  cache_files.map((fn) => ({ fn:fn, ts:$util.file_stat(fn)!.mtime.getTime() }))
                             };
 
         build.define_dstfile(dst);

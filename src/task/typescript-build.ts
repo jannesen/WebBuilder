@@ -19,7 +19,7 @@ class TypeScriptBuild
 {
     private     build:              $util.Build;
     private     compileoptions:     $ts.CompilerOptions;
-    private     program:            $ts.Program;
+    private     program!:           $ts.Program;
     private     diagnostics:        $ts.Diagnostic[];
 
     constructor(build:$util.Build) {
@@ -179,8 +179,8 @@ class TypeScriptBuild
 
                         self.addDiagnostics([{
                             file:               sourceFile,
-                            start:              d[0].pos,
-                            length:             d[0].end - d[0].pos,
+                            start:              (d ? d[0].pos            : 0),
+                            length:             (d ? d[0].end - d[0].pos : 0),
                             messageText:        message,
                             category:           $ts.DiagnosticCategory.Error,
                             code:               0
@@ -291,27 +291,27 @@ class TypeScriptBuild
             this.build.logError(file.dst + ": " + e.message);
         }
     }
-    private     emitFile(sourceFile:$ts.SourceFile, dstfn:string)
+    private     emitFile(sourceFile:$ts.SourceFile|undefined, dstfn:string)
     {
-        let jsdata:string;
-        let dtsdata:string;
-        let mapdata:string;
+        let jsdata:string|undefined;
+        let dtsdata:string|undefined;
+        let mapdata:string|undefined;
         let sourcemap:any;
 
         const emitResult = this.program.emit(sourceFile, (fileName, data, writeByteOrderMark, onError, sourceFiles) => {
                                                 if (fileName.endsWith(".map")) {
                                                     if (mapdata) {
-                                                        onError("Multiple outputs.");
+                                                        onError!("Multiple outputs.");
                                                     }
                                                     mapdata = data;
                                                 } else if (fileName.endsWith(".d.ts")) {
                                                     if (dtsdata) {
-                                                        onError("Multiple outputs.");
+                                                        onError!("Multiple outputs.");
                                                     }
                                                     dtsdata = data;
                                                 } else {
                                                     if (jsdata) {
-                                                        onError("Multiple outputs.");
+                                                        onError!("Multiple outputs.");
                                                     }
                                                     jsdata = data;
                                                 }
@@ -362,7 +362,7 @@ class TypeScriptBuild
                 throw new Error(result.error);
             }
 
-            jsdata  = result.code;
+            jsdata  = result.code as string;
 
             if (sourcemap) {
                 const   map = JSON.parse(result.map);
@@ -401,14 +401,14 @@ class TypeScriptBuild
             const diagnostic = this.diagnostics[i];
 
             const fileName = diagnostic.file ? diagnostic.file.fileName : undefined;
-            const pos      = diagnostic.file ? diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start) : undefined;
+            const pos      = diagnostic.file && typeof diagnostic.start === "number" ? diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start) : undefined;
             const line     = pos ? pos.line + 1      : undefined;
             const column   = pos ? pos.character + 1 : undefined;
 
             if (typeof diagnostic.messageText === "string") {
                 this.build.logErrorFile(fileName, line, column, (diagnostic.code ? "TS" + diagnostic.code : undefined), diagnostic.messageText);
             } else {
-                for (let diagnosticChain = diagnostic.messageText as $ts.DiagnosticMessageChain, indent = 0 ;
+                for (let diagnosticChain = diagnostic.messageText as ($ts.DiagnosticMessageChain|undefined), indent = 0 ;
                         diagnosticChain ;
                         diagnosticChain = diagnosticChain.next, ++indent) {
                     this.build.logErrorFile(fileName, line, column, (diagnostic.code ? "TS" + diagnostic.code : undefined), "  ".repeat(indent) + diagnosticChain.messageText);

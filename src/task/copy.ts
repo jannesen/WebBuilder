@@ -62,7 +62,7 @@ function item_src(src:string, config:$main.IBuildCopy)
     return src;
 }
 
-function item_rename(r:$main.ICopyRename, n:string):string
+function item_rename(r:$main.ICopyRename|undefined, n:string):string
 {
     if (r) {
         const extname  = $path.extname(n);

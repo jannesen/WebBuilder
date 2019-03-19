@@ -7,7 +7,7 @@ export interface ISassItem
     src:        string;
     dst:        string;
     reference?: string[];
-    options:    $main.ISassOptions;
+    options:    $main.ISassOptions|undefined;
 }
 
 export function run(build:$util.Build, config:$main.IBuildSass[]) {
@@ -39,7 +39,7 @@ export function run(build:$util.Build, config:$main.IBuildSass[]) {
 
     items.sort((i1, i2) => ( i1.dst < i2.dst ? -1 : i1.dst > i2.dst ? 1 : 0 ) );
 
-    let statemap:$lib.Map<ISassItem>;
+    let statemap:$lib.Map<ISassItem>|undefined;
 
     if (!build.rebuild) {
         statemap = $lib.createMap<ISassItem>();

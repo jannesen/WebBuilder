@@ -1,13 +1,18 @@
 ﻿{
     "compilerOptions": {
-        "target":           "es2017",
-        "module":           "none",
-        "noImplicitAny":    true,
-        "removeComments":   true,
-        "moduleResolution": "node",
-        "sourceMap":        true,
-        "inlineSources":    true,
-        "outDir":           "../lib",
-        "baseUrl":          ".",
+        "target":               "es2017",
+        "module":               "none",
+        "noErrorTruncation":    true,
+        "noImplicitAny":        true,
+        "noImplicitThis":       true,
+        "alwaysStrict":         true,
+        "strict":               true,
+        "preserveConstEnums":   false,
+        "removeComments":       true,
+        "moduleResolution":     "node",
+        "sourceMap":            true,
+        "inlineSources":        true,
+        "outDir":               "../lib",
+        "baseUrl":              "."
     }
 }

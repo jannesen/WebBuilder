@@ -11,11 +11,11 @@ export interface Map<T> {
 
 export class HashTable<TKey, TData>
 {
-    private     _hashtable:     Array<IHashTableData<TKey, TData> | Array<IHashTableData<TKey, TData>>>;
+    private     _hashtable:     Array<IHashTableData<TKey, TData> | Array<IHashTableData<TKey, TData>> | undefined>;
 
                 constructor(n?:number)
     {
-        this._hashtable = new Array(Math.min((n * 5) || 997, 4992));
+        this._hashtable = new Array(Math.min((typeof n === "number" ? n * 5 : 997), 4992));
     }
 
     public      forEach(callback:(key:TKey, data:TData) => void)
@@ -82,7 +82,7 @@ export class HashTable<TKey, TData>
         return false;
     }
 
-    public      find(key:TKey):TData
+    public      find(key:TKey):TData|null
     {
         const   hash = hash_of(key);
         const   r    = this._hashtable[hash % this._hashtable.length];
@@ -108,7 +108,7 @@ export class HashTable<TKey, TData>
 export function createMap<T>():Map<T> {
     const   map:Map<T> = Object.create(null);
 
-    map["__"] = undefined;
+    (map as any)["__"] = undefined;
     delete map["__"];
 
     return map;

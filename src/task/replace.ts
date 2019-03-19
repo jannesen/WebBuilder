@@ -43,7 +43,7 @@ export function run(build:$util.Build, config:$main.IBuildReplace[])
 
     items.sort((i1, i2) => ( i1.dst < i2.dst ? -1 : i1.dst > i2.dst ? 1 : 0 ) );
 
-    let statemap:$lib.Map<IReplaceItem>;
+    let statemap:$lib.Map<IReplaceItem>|undefined;
 
     if (!build.rebuild) {
         statemap = $lib.createMap<IReplaceItem>();

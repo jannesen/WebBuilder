@@ -2,7 +2,7 @@
 
 export interface IBuildConfig
 {
-    global?:        IBuildGlobal;
+    global:         IBuildGlobal;
     copy?:          IBuildCopy;
     sass?:          IBuildSass;
     typescript?:    IBuildTypeScript;
@@ -24,7 +24,7 @@ export interface IBuildGlobal
     diagoutput?:            boolean;
     paths:                  IPaths;
     src_path:               string;
-    dst_path?:              string;
+    dst_path:               string;
     sourcemap_path:         string;
     sourcemap_root:         string;
     sourcemap_inlinesrc?:   boolean;

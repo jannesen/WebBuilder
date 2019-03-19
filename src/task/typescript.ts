@@ -7,9 +7,9 @@ interface ITypeScriptStep
 {
     items:          ITypeScriptItem[];
     singleFile:     boolean;
-    tsconfig:       string|Object;
-    tslint:         string|Object;
-    options:        $main.ITypeScriptOptions;
+    tsconfig:       string|Object|undefined;
+    tslint:         string|Object|undefined;
+    options:        $main.ITypeScriptOptions|undefined;
 }
 
 export interface ITypeScriptItem
@@ -31,26 +31,26 @@ export function run(build:$util.Build, config:$main.IBuildTypeScript[]) {
 
         if (tsconfig === undefined) {
             if (!$fs.existsSync(tsconfig = build.src_path + "/tsconfig.json")) {
-                tsconfig = null;
+                tsconfig = undefined;
             }
         } else if (typeof tsconfig === "string") {
             if (!$fs.existsSync(tsconfig = build.src_path + "/" + tsconfig)) {
                 throw new Error("Unknown tsconfig '" + tsconfig + "'.");
             }
         } else if (!(tsconfig instanceof Object)) {
-            tsconfig = null;
+            tsconfig = undefined;
         }
 
         if (tslint === undefined) {
             if (!$fs.existsSync(tslint = build.src_path + "/tslint.json")) {
-                tslint = null;
+                tslint = undefined;
             }
         } else if (typeof tslint === "string") {
             if (!$fs.existsSync(tslint = build.src_path + "/" + tslint)) {
                 throw new Error("Unknown tslint '" + tslint + "'.");
             }
         } else if (!(tslint instanceof Object)) {
-            tslint = null;
+            tslint = undefined;
         }
         if (dst.endsWith("/")) {
             const   items:ITypeScriptItem[] = [];
@@ -91,7 +91,7 @@ export function run(build:$util.Build, config:$main.IBuildTypeScript[]) {
         }
     }
 
-    let statemap:$lib.Map<ITypeScriptItem>;
+    let statemap:$lib.Map<ITypeScriptItem>|undefined;
 
     if (!build.rebuild) {
         statemap = $lib.createMap<ITypeScriptItem>();
@@ -108,8 +108,8 @@ export function run(build:$util.Build, config:$main.IBuildTypeScript[]) {
 
         for (const item of step.items) {
             build.define_dstfile(item.dst,
-                                  (build.sourcemap                         ? item.dst + ".map"                         : null),
-                                  (item.options && item.options.declaration ? $util.rename_extension(item.dst, ".d.ts") : null));
+                                  (build.sourcemap                          ? item.dst + ".map"                         : undefined),
+                                  (item.options && item.options.declaration ? $util.rename_extension(item.dst, ".d.ts") : undefined));
 
             if (statemap) {
                 const s = statemap[item.dst];
@@ -117,7 +117,7 @@ export function run(build:$util.Build, config:$main.IBuildTypeScript[]) {
                 if (s && s.dst === item.dst &&
                     $lib.compare_recursive(s.src, item.src) &&
                     $lib.compare_recursive(s.options, item.options) &&
-                    $util.isUpdateToDate(item.dst, item.src, s.reference, (typeof step.tsconfig === "string" ? step.tsconfig : null)))
+                    $util.isUpdateToDate(item.dst, item.src, s.reference, (typeof step.tsconfig === "string" ? step.tsconfig : undefined)))
                 {
                     state.push(s);
                     continue;

@@ -40,7 +40,7 @@ export class Args
     {
         const argv = process.argv;
         this._rebuild = false;
-        this._release = null;
+        this._release = false;
         this._flavor  = "";
 
         for (let i = 2 ; i < argv.length ; ++i) {
@@ -86,7 +86,7 @@ export class Build
     private     _state_file:            string;
     private     _errors:                number;
     private     _state:                 any;
-    private     _curTask:               string;
+    private     _curTask:               string|undefined;
     private     _targets:               ITargetDirectory;
 
     public get  rebuild()
@@ -128,31 +128,41 @@ export class Build
 
                 constructor(global:$main.IBuildGlobal)
     {
-        this._rebuild              = false;
-        this._release              = global.release;
-        this._flavor               = global.flavor;
-        this._lint                 = global.lint;
-        this._diagoutput           = global.diagoutput || false;
+        let rebuild              = false;
+        let release              = global.release;
+        let flavor               = global.flavor;
+        let lint                 = global.lint;
+        let sourcemap_path       = global.sourcemap_path;
+        let sourcemap_root       = global.sourcemap_root;
+        let sourcemap_inlinesrc  = global.sourcemap_inlinesrc;
+
+        this._diagoutput          = global.diagoutput || false;
+        this._src_path            = path_join(global.src_path);
+        this._dst_path            = path_join(global.dst_path);
+        this._state_file          = path_join(global.state_file || (this._dst_path + "/build.state"));
+        this._errors              = 0;
+        this._state               = {};
+        this._targets             = {};
+
+        if ($main.args.rebuild !== undefined)   rebuild = $main.args.rebuild;
+        if ($main.args.release !== undefined)   release = $main.args.release;
+        if ($main.args.flavor  !== undefined)   flavor  = $main.args.flavor;
+
+        if (release    === undefined)           release = false;
+        if (lint       === undefined)           lint    = release;
+        if (flavor     === undefined)           flavor  = "";
+        if (sourcemap_path          )           sourcemap_path = path_join(this._src_path, sourcemap_path);
+        if (!sourcemap_root && sourcemap_path)  sourcemap_root = "/sources/";
+        if (!sourcemap_inlinesrc)               sourcemap_inlinesrc = !release;
+
+        this._rebuild              = rebuild;
+        this._release              = release;
+        this._flavor               = flavor;
+        this._lint                 = lint;
         this._paths                = global.paths;
-        this._src_path             = path_join(global.src_path);
-        this._dst_path             = path_join(global.dst_path);
-        this._sourcemap_path       = global.sourcemap_path;
-        this._sourcemap_root       = global.sourcemap_root;
-        this._sourcemap_inlinesrc  = global.sourcemap_inlinesrc;
-        this._state_file           = path_join(global.state_file || (this._dst_path + "/build.state"));
-        this._errors               = 0;
-        this._state                = {};
-        this._targets              = {};
-
-        if ($main.args.rebuild !== undefined)   this._rebuild = $main.args.rebuild;
-        if ($main.args.release !== undefined)   this._release = $main.args.release;
-        if ($main.args.flavor  !== undefined)   this._flavor  = $main.args.flavor;
-
-        if (this._release    === undefined)                 this._release = false;
-        if (this._lint       === undefined)                 this._lint    = this._release;
-        if (this._sourcemap_path          )                 this._sourcemap_path = path_join(this._src_path, this._sourcemap_path);
-        if (!this._sourcemap_root && this._sourcemap_path)  this._sourcemap_root = "/sources/";
-        if (!this._sourcemap_inlinesrc)                     this._sourcemap_inlinesrc = !this._release;
+        this._sourcemap_path       = sourcemap_path;
+        this._sourcemap_root       = sourcemap_root;
+        this._sourcemap_inlinesrc  = sourcemap_inlinesrc;
 
         if (!this._rebuild && this._state_file) {
             try {
@@ -243,7 +253,7 @@ export class Build
     {
         return this.src1(item.src_base, item.src, undefined);
     }
-    public      src1(base:string, pattern:string|$main.ISrcFilter|(string|$main.ISrcFilter)[], target:string)
+    public      src1(base:string|undefined, pattern:string|$main.ISrcFilter|(string|$main.ISrcFilter)[], target:string|undefined)
     {
         if (typeof pattern === "string") {
             return this.src2(base, pattern, undefined);
@@ -284,7 +294,7 @@ export class Build
 
         throw new Error("Src not defined.");
     }
-    public      src2(base:string, pattern:string|string[], target:string):ISrcTarget[]
+    public      src2(base:string|undefined, pattern:string|string[], target:string|undefined):ISrcTarget[]
     {
         let cwd = base ? this.resolveName(base) : this._src_path;
         if (!cwd.endsWith("/")) {
@@ -380,7 +390,7 @@ export class Build
     {
         return this._sourcemap_root + $path.relative(this._sourcemap_path, srcfn).replace(/\\/g, "/");
     }
-    public      define_dstfile(...dstfns:string[])
+    public      define_dstfile(...dstfns:(string|undefined)[])
     {
         for (const dstfn of dstfns) {
             if (typeof dstfn === "string" && dstfn.startsWith(this._dst_path)) {
@@ -411,10 +421,16 @@ export class Build
     }
     public      getState<T>()
     {
+        if (!this._curTask) {
+            throw new Error("Invalid state this._curTask is undefined.");
+        }
         return (this._state[this._curTask] || []) as T[];
     }
     public      setState(state:any)
     {
+        if (!this._curTask) {
+            throw new Error("Invalid state this._curTask is undefined.");
+        }
         this._state[this._curTask] = state;
     }
     public      logBuildFile(fn:string)
@@ -432,14 +448,14 @@ export class Build
         console.log(msg);
         this._errors++;
     }
-    public      logErrorFile(fn:string, line:number, column:number, code:string, msg:string)
+    public      logErrorFile(fn:string|undefined, line:number|undefined, column:number|undefined, code:string|undefined, msg:string)
     {
         if (typeof fn === "string") {
             let m = $path.relative(this._src_path, fn);
 
-            if (line > 0) {
+            if (typeof line === "number" && line > 0) {
                 m += "(" + line;
-                if (column > 0) {
+                if (typeof column === "number" && column > 0) {
                     m += "," + column;
                 }
                 m += ")";
@@ -454,12 +470,11 @@ export class Build
             this.logError(msg);
         }
 
-
         this._errors++;
     }
 }
 
-export function isUpdateToDate(dstfn:string, ...srcfns:(string|string[])[] )
+export function isUpdateToDate(dstfn:string, ...srcfns:(string|string[]|undefined)[] )
 {
     const dst_s = file_stat(dstfn);
 
@@ -501,7 +516,7 @@ export function rename_extension(fn:string, ext:string):string
 export function path_join(...args:string[]):string
 {
     let i:number;
-    let p:string;
+    let p:string|undefined;
 
     for (i = arguments.length - 1 ; i >= 0 ; --i) {
         if (arguments[i] && ($path as any).isAbsolute(arguments[i])) {

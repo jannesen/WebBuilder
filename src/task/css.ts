@@ -39,7 +39,7 @@ export function run(build:$util.Build, config:$main.IBuildCopy[])
 
     for (const item of items) {
         try {
-            build.define_dstfile(item.dst, (build.sourcemap ? item.dst + ".map" : null));
+            build.define_dstfile(item.dst, (build.sourcemap ? item.dst + ".map" : undefined));
 
             if (!build.rebuild && $util.isUpdateToDate(item.dst, item.src)) {
                 continue;
@@ -91,6 +91,6 @@ function build_css(build:$util.Build, item:ICSSItem)
             $util.file_copy(item.src, item.dst);
         }
     } catch(e) {
-        build.logErrorFile(item.src, 0, 0, null, e.message);
+        build.logErrorFile(item.src, 0, 0, undefined, e.message);
     }
 }

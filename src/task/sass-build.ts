@@ -109,9 +109,9 @@ export function build_sass(build:$util.Build, item:$task.ISassItem)
         }
     } catch(e) {
         if (e.file) {
-            build.logErrorFile(e.file, e.line, e.column, null, e.message);
+            build.logErrorFile(e.file, e.line, e.column, undefined, e.message);
         } else {
-            build.logErrorFile(item.src, 0, 0, null, e.message);
+            build.logErrorFile(item.src, 0, 0, undefined, e.message);
         }
     }
 }
