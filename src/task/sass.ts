@@ -39,12 +39,12 @@ export function run(build:$util.Build, config:$main.IBuildSass[]) {
 
     items.sort((i1, i2) => ( i1.dst < i2.dst ? -1 : i1.dst > i2.dst ? 1 : 0 ) );
 
-    let statemap:$lib.Map<ISassItem>|undefined;
+    let statemap:Map<string, ISassItem>|undefined;
 
     if (!build.rebuild) {
-        statemap = $lib.createMap<ISassItem>();
+        statemap = new Map<string, ISassItem>();
         for (const s of build.getState<ISassItem>()) {
-            statemap[s.dst] = s;
+            statemap.set(s.dst, s);
         }
     }
 
@@ -54,7 +54,7 @@ export function run(build:$util.Build, config:$main.IBuildSass[]) {
         build.define_dstfile(item.dst, (build.sourcemap && !build.release ? item.dst + ".map" : undefined));
 
         if (statemap) {
-            const s = statemap[item.dst];
+            const s = statemap.get(item.dst);
 
             if (s && s.src[0] === item.src[0] && $lib.compare_recursive(item.options, s.options) && $util.isUpdateToDate(s.dst, s.src, s.reference)) {
                 state.push(s);

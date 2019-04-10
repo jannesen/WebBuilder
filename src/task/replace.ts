@@ -43,12 +43,12 @@ export function run(build:$util.Build, config:$main.IBuildReplace[])
 
     items.sort((i1, i2) => ( i1.dst < i2.dst ? -1 : i1.dst > i2.dst ? 1 : 0 ) );
 
-    let statemap:$lib.Map<IReplaceItem>|undefined;
+    let statemap:Map<string, IReplaceItem>|undefined;
 
     if (!build.rebuild) {
-        statemap = $lib.createMap<IReplaceItem>();
+        statemap = new Map<string, IReplaceItem>();
         for (const s of build.getState<IReplaceItem>()) {
-            statemap[s.dst] = s;
+            statemap.set(s.dst, s);
         }
     }
 
@@ -59,7 +59,7 @@ export function run(build:$util.Build, config:$main.IBuildReplace[])
             build.define_dstfile(item.dst);
 
             if (statemap) {
-                const s = statemap[item.dst];
+                const s = statemap.get(item.dst);
 
                 if (s && s.src[0] === item.src[0] && $lib.compare_recursive(item.replace, s.replace) && $util.isUpdateToDate(s.dst, s.src)) {
                     state.push(s);

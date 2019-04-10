@@ -91,13 +91,13 @@ export function run(build:$util.Build, config:$main.IBuildTypeScript[]) {
         }
     }
 
-    let statemap:$lib.Map<ITypeScriptItem>|undefined;
+    let statemap:Map<string, ITypeScriptItem>|undefined;
 
     if (!build.rebuild) {
-        statemap = $lib.createMap<ITypeScriptItem>();
+        statemap = new Map<string, ITypeScriptItem>();
 
         for (const s of build.getState<ITypeScriptItem>()) {
-            statemap[s.dst] = s;
+            statemap.set(s.dst, s);
         }
     }
 
@@ -112,7 +112,7 @@ export function run(build:$util.Build, config:$main.IBuildTypeScript[]) {
                                   (item.options && item.options.declaration ? $util.rename_extension(item.dst, ".d.ts") : undefined));
 
             if (statemap) {
-                const s = statemap[item.dst];
+                const s = statemap.get(item.dst);
 
                 if (s && s.dst === item.dst &&
                     $lib.compare_recursive(s.src, item.src) &&

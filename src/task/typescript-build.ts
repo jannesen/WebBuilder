@@ -1,7 +1,6 @@
 ﻿import * as $fs from "fs";
 import * as $path from "path";
 import * as $main from "../main";
-import * as $lib from "../lib/lib.js";
 import * as $util from "../lib/util.js";
 import * as $task from "./typescript";
 import * as $ts from "typescript/lib/typescript";
@@ -255,30 +254,54 @@ class TypeScriptBuild
     }
     private     processFiles(files:$task.ITypeScriptItem[])
     {
-        const sourceFileMap = $lib.createMap<$ts.SourceFile>();
-        for (const s of this.program.getSourceFiles()) {
-            sourceFileMap[s.fileName] = s;
-        }
+        const getCanonicalFileName = $ts.getGetCanonicalFileName();
+        const sourceMap = new Map<string, { sourceFile: $ts.SourceFile, dependencies: $ts.Map<true>|undefined }>();
 
-        const builderState = ($ts as any).BuilderState; // Workaround to access internals
-        const bs = builderState.create(this.program, (s:string) => s.toLowerCase());
+        for (const sourceFile of this.program.getSourceFiles()) {
+            sourceMap.set(getCanonicalFileName(sourceFile.fileName), { sourceFile, dependencies: $ts.getReferencedFiles(this.program, sourceFile, getCanonicalFileName) });
+        }
 
         for (const typeScriptFile of files) {
             try {
-                const sourceFile = sourceFileMap[typeScriptFile.src as string];
-                if (!sourceFile)
+                const sf = sourceMap.get(getCanonicalFileName(typeScriptFile.src as string));
+                if (!sf)
                     throw new Error("Can't File File in sourceFiles");
 
-                const dependencies:string[] = [];
-                ($ts as any).BuilderState.getAllDependencies(bs, this.program, sourceFile).forEach((s:string) => {
-                        if (s !== typeScriptFile.src) {
-                            dependencies.push(s);
-                        }
-                    });
-                typeScriptFile.reference = array_sortunique(dependencies);
-                this.emitFile(sourceFile, typeScriptFile.dst);
+                typeScriptFile.reference = getDependencies(sf.dependencies);
+                this.emitFile(sf.sourceFile, typeScriptFile.dst);
             } catch(e) {
                 this.build.logError(typeScriptFile.dst + ": " + e.message);
+            }
+        }
+
+        function getDependencies(dependencies:$ts.Map<true>|undefined):string[] {
+            const dep     = <string[]> [];
+            const seenMap = new Map<string, true>();
+            const queue   = <string[]> [];
+
+            addQueue(dependencies);
+
+            while (queue.length) {
+                const path = queue.pop()!;
+                if (!seenMap.has(path)) {
+                    seenMap.set(path, true);
+                    const sf = sourceMap.get(getCanonicalFileName(path));
+                    if (sf) {
+                        dep.push(sf.sourceFile.fileName);
+                        addQueue(sf.dependencies);
+                    }
+                }
+            }
+
+            return dep.sort().filter((s, i, a) => (i === 0 || a[i - 1] !== s));
+
+            function addQueue(dependencies:$ts.Map<true>|undefined) {
+                if (dependencies) {
+                    const iterator = dependencies.keys();
+                    for (let { value, done } = iterator.next(); !done; { value, done } = iterator.next()) {
+                        queue.push(value);
+                    }
+                }
             }
         }
     }
@@ -440,9 +463,4 @@ function getExportInterface(sourceFile:$ts.SourceFile) {
     }
 
     return undefined;
-}
-
-function array_sortunique(a:string[])
-{
-    return a.sort().filter((s, i, a) => (i === 0 || a[i - 1] !== s));
 }

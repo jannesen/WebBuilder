@@ -19,12 +19,12 @@ interface IFileInfo
 
 export function run(build:$util.Build, config:$main.IBuildAppCache[])
 {
-    let statemap:$lib.Map<IAppCacheFile>|undefined;
+    let statemap:Map<string, IAppCacheFile>|undefined;
 
     if (!build.rebuild) {
-        statemap = $lib.createMap<IAppCacheFile>();
+        statemap = new Map<string, IAppCacheFile>();
         for (const s of build.getState<IAppCacheFile>()) {
-            statemap[s.dst] = s;
+            statemap.set(s.dst, s);
         }
     }
 
@@ -42,7 +42,7 @@ export function run(build:$util.Build, config:$main.IBuildAppCache[])
 
         build.define_dstfile(dst);
 
-        if (!(statemap && $lib.compare_recursive(statemap[dst], newState))) {
+        if (!(statemap && $lib.compare_recursive(statemap.get(dst), newState))) {
             build.logBuildFile(dst);
             const   md5sum = $crypto.createHash("sha256");
 

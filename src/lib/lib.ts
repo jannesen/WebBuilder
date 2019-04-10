@@ -5,10 +5,6 @@
     data:       TData;
 }
 
-export interface Map<T> {
-    [index:string]: T;
-}
-
 export class HashTable<TKey, TData>
 {
     private     _hashtable:     Array<IHashTableData<TKey, TData> | Array<IHashTableData<TKey, TData>> | undefined>;
@@ -103,15 +99,6 @@ export class HashTable<TKey, TData>
 
         return null;
     }
-}
-
-export function createMap<T>():Map<T> {
-    const   map:Map<T> = Object.create(null);
-
-    (map as any)["__"] = undefined;
-    delete map["__"];
-
-    return map;
 }
 
 export function hash_of(o:any):number
