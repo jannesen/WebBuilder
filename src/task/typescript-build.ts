@@ -321,7 +321,7 @@ class TypeScriptBuild
         let mapdata:string|undefined;
         let sourcemap:any;
 
-        const emitResult = this.program.emit(sourceFile, (fileName, data, writeByteOrderMark, onError, sourceFiles) => {
+        const emitResult = this.program.emit(sourceFile, (fileName, data, _writeByteOrderMark, onError, _sourceFiles) => {
                                                 if (fileName.endsWith(".map")) {
                                                     if (mapdata) {
                                                         onError!("Multiple outputs.");

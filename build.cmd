@@ -11,6 +11,6 @@ echo tsc: WebBuilder
 if errorlevel 1 goto done
 
 echo tslint: WebBuilder
-"%NODEJS%node.exe" %NODE_PATH%\tslint\lib\tslint-cli --project src
+"%NODEJS%node.exe" %NODE_PATH%\tslint\lib\tslintCli --project src
 
 :done

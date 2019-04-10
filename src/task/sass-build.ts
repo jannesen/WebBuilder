@@ -21,7 +21,7 @@ export function build_sass(build:$util.Build, item:$task.ISassItem)
                                                     outputStyle:        (build.release ? "compressed" : "expanded"),
                                                     indentedSyntax:     false,
                                                     omitSourceMapUrl:   false,
-                                                    importer:           (url:string, prev:string, done:(r:any) => void) => {
+                                                    importer:           (url:string, prev:string) => {
                                                                             build.logDebug("import: " + url);
                                                                             try {
                                                                                 return {

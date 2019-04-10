@@ -532,9 +532,9 @@ export function path_join(...args:string[]):string
     let i:number;
     let p:string|undefined;
 
-    for (i = arguments.length - 1 ; i >= 0 ; --i) {
-        if (arguments[i] && ($path as any).isAbsolute(arguments[i])) {
-            p = arguments[i];
+    for (i = args.length - 1 ; i >= 0 ; --i) {
+        if (args[i] && ($path as any).isAbsolute(args[i])) {
+            p = args[i];
             break;
         }
     }
@@ -542,9 +542,9 @@ export function path_join(...args:string[]):string
     if (p === undefined)
         p = process_cwd;
 
-    for (++i ; i < arguments.length ; ++i) {
-        if (arguments[i]) {
-            p = $path.join(p, arguments[i]);
+    for (++i ; i < args.length ; ++i) {
+        if (args[i]) {
+            p = $path.join(p, args[i]);
         }
     }
 
