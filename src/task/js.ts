@@ -73,7 +73,7 @@ function build_js(build:$util.Build, item:IJSItem)
                 };
             }
 
-            const result = require("uglify-es").minify(code, options);
+            const result = require("terser").minify(code, options);
 
             if (result.error) {
                 throw new Error(result.error);
