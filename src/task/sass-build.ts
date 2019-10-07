@@ -65,9 +65,9 @@ export function build_sass(build:$util.Build, item:$task.ISassItem)
             let result_postcss:any;
 
             result_postcss = $postcss([ $autoprefixer({
-                                                        add:      false,
-                                                        cascade:  false,
-                                                        browsers: []
+                                                        add:                    false,
+                                                        cascade:                false,
+                                                        overrideBrowserslist :  []
                                                       }) ])
                              .process(cssdata, {
                                                     to:     dstn,
@@ -81,9 +81,9 @@ export function build_sass(build:$util.Build, item:$task.ISassItem)
             cssdata   = result_postcss.css;
             sourcemap = sourcemap && result_postcss.map;
             result_postcss = $postcss([ $autoprefixer({
-                                                        add:      true,
-                                                        cascade:  false,
-                                                        browsers: item.options.autoprefixer
+                                                        add:                    true,
+                                                        cascade:                false,
+                                                        overrideBrowserslist:   item.options.autoprefixer
                                                       }) ])
                              .process(cssdata, {
                                                     to:     dstn,

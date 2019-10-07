@@ -420,6 +420,8 @@ class TypeScriptBuild
     }
     private     logDiagnostics()
     {
+        const build = this.build;
+
         for (let i = 0 ; i < this.diagnostics.length && i < 1000 ; ++i ) {
             const diagnostic = this.diagnostics[i];
 
@@ -431,10 +433,16 @@ class TypeScriptBuild
             if (typeof diagnostic.messageText === "string") {
                 this.build.logErrorFile(fileName, line, column, (diagnostic.code ? "TS" + diagnostic.code : undefined), diagnostic.messageText);
             } else {
-                for (let diagnosticChain = diagnostic.messageText as ($ts.DiagnosticMessageChain|undefined), indent = 0 ;
-                        diagnosticChain ;
-                        diagnosticChain = diagnosticChain.next, ++indent) {
-                    this.build.logErrorFile(fileName, line, column, (diagnostic.code ? "TS" + diagnostic.code : undefined), "  ".repeat(indent) + diagnosticChain.messageText);
+                logDiagnosticMessageChain(diagnostic.messageText, 0);
+
+                function logDiagnosticMessageChain(diagnosticChain:$ts.DiagnosticMessageChain, indent:number) {
+                    build.logErrorFile(fileName, line, column, (diagnostic.code ? "TS" + diagnostic.code : undefined), "  ".repeat(indent) + diagnosticChain.messageText);
+
+                    if (diagnosticChain.next) {
+                        for (const n of diagnosticChain.next) {
+                            logDiagnosticMessageChain(n, indent + 1);
+                        }
+                    }
                 }
             }
         }
