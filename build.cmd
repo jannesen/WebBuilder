@@ -6,11 +6,11 @@ set NODE_PATH=%NODEJS%node_modules
 
 cd %~dp0
 
-echo tsc: WebBuilder
+echo tsc: BuildJS
 "%NODEJS%node.exe" %NODE_PATH%\typescript\lib\tsc.js -p src\tsconfig.json
 if errorlevel 1 goto done
 
-echo tslint: WebBuilder
+echo tslint: BuildJS
 "%NODEJS%node.exe" %NODE_PATH%\tslint\lib\tslintCli --project src
 
 :done

@@ -5,6 +5,8 @@ import * as $main from "../main";
 import * as $lib from "../lib/lib";
 import * as $util from "../lib/util";
 
+const taskName = "appcache";
+
 interface IAppCacheFile
 {
     dst:        string;
@@ -17,13 +19,13 @@ interface IFileInfo
     ts:     number;
 }
 
-export function run(build:$util.Build, config:$main.IBuildAppCache[])
+export async function runAsync(build:$util.Build, config:$main.IBuildAppCache[])
 {
     let statemap:Map<string, IAppCacheFile>|undefined;
 
     if (!build.rebuild) {
         statemap = new Map<string, IAppCacheFile>();
-        for (const s of build.getState<IAppCacheFile>()) {
+        for (const s of build.getState<IAppCacheFile>(taskName)) {
             statemap.set(s.dst, s);
         }
     }
@@ -43,7 +45,7 @@ export function run(build:$util.Build, config:$main.IBuildAppCache[])
         build.define_dstfile(dst);
 
         if (!(statemap && $lib.compare_recursive(statemap.get(dst), newState))) {
-            build.logBuildFile(dst);
+            build.logBuildFile(taskName, dst);
             const   md5sum = $crypto.createHash("sha256");
 
             for (const fn of cache_files) {
@@ -63,5 +65,5 @@ export function run(build:$util.Build, config:$main.IBuildAppCache[])
         state.push(newState);
     }
 
-    build.setState(state);
+    build.setState(taskName, state);
 }

@@ -3,13 +3,15 @@ import * as $fs from "fs";
 import * as $main from "../main";
 import * as $util from "../lib/util";
 
+const taskName = "js";
+
 interface IJSItem
 {
     src:        string;
     dst:        string;
 }
 
-export function run(build:$util.Build, config:$main.IBuildCopy[])
+export async function runAsync(build:$util.Build, config:$main.IBuildCopy[])
 {
     const   items:IJSItem[] = [];
 
@@ -55,7 +57,7 @@ export function run(build:$util.Build, config:$main.IBuildCopy[])
 function build_js(build:$util.Build, item:IJSItem)
 {
     try {
-        build.logBuildFile(item.dst);
+        build.logBuildFile(taskName, item.dst);
 
         if (build.release) {
             const   sourcedata = $fs.readFileSync(item.src, "utf8");

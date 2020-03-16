@@ -3,13 +3,15 @@ import * as $fs from "fs";
 import * as $main from "../main";
 import * as $util from "../lib/util";
 
+const taskName = "css";
+
 interface ICSSItem
 {
     src:        string;
     dst:        string;
 }
 
-export function run(build:$util.Build, config:$main.IBuildCopy[])
+export async function runAsync(build:$util.Build, config:$main.IBuildCopy[])
 {
     const   items:ICSSItem[] = [];
 
@@ -55,7 +57,7 @@ export function run(build:$util.Build, config:$main.IBuildCopy[])
 function build_css(build:$util.Build, item:ICSSItem)
 {
     try {
-        build.logBuildFile(item.dst);
+        build.logBuildFile(taskName, item.dst);
 
         if (build.release) {
             const   $cleanCss  = require("clean-css");

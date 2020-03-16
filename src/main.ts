@@ -1,4 +1,5 @@
 ﻿import * as $util from "./lib/util.js";
+import * as $workbox from "workbox-build";
 
 export interface IBuildConfig
 {
@@ -7,6 +8,7 @@ export interface IBuildConfig
     sass?:          IBuildSass;
     typescript?:    IBuildTypeScript;
     appcache?:      IBuildAppCache;
+    workbox?:       $workbox.GenerateSWConfig;
     touch?:         BuildTouch;
 }
 
@@ -156,7 +158,7 @@ export interface ITypeScriptOptions
 
 export const args = new $util.Args();
 
-export function build(...buildconfig:IBuildConfig[])
+export async function build(...buildconfig:IBuildConfig[])
 {
     const   start  = (new Date()).getTime();
     let     errors = 0;
@@ -165,12 +167,11 @@ export function build(...buildconfig:IBuildConfig[])
         const bc = (buildconfig as IBuildConfig[])[i];
         const build = new $util.Build(bc.global);
 
-        ["css", "sass", "js", "typescript", "replace", "copy", "appcache", "touch"]
-            .forEach(function (name) {
-                        if ((bc as any)[name]) {
-                            build.runTask(name, (bc as any)[name]);
-                        }
-                     });
+        for(const name of ["css", "sass", "js", "typescript", "replace", "copy", "appcache", "workbox", "touch"]) {
+            if ((bc as any)[name]) {
+                await build.runTaskAsync(name, (bc as any)[name]);
+            }
+        }
 
         if (build.errors === 0) {
             build.saveState();

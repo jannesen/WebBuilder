@@ -5,6 +5,8 @@ import * as $util from "../lib/util.js";
 import * as $task from "./sass";
 import * as $nodesass from "node-sass";
 
+const taskName = "sass";
+
 export function build_sass(build:$util.Build, item:$task.ISassItem)
 {
     try {
@@ -12,7 +14,7 @@ export function build_sass(build:$util.Build, item:$task.ISassItem)
         let cssdata:string  = $fs.readFileSync(item.src, { encoding: "utf8" });
         let sourcemap:any;
 
-        build.logBuildFile(item.dst);
+        build.logBuildFile(taskName, item.dst);
 
         const sassOptions:$nodesass.Options = {
                                                     file:               item.src,
@@ -22,7 +24,7 @@ export function build_sass(build:$util.Build, item:$task.ISassItem)
                                                     indentedSyntax:     false,
                                                     omitSourceMapUrl:   false,
                                                     importer:           (url:string, prev:string) => {
-                                                                            build.logDebug("import: " + url);
+                                                                            build.logDebug(taskName, "import: " + url);
                                                                             try {
                                                                                 return {
                                                                                     file: url.startsWith("$")

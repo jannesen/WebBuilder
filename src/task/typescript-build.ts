@@ -5,10 +5,12 @@ import * as $util from "../lib/util.js";
 import * as $task from "./typescript";
 import * as $ts from "typescript/lib/typescript";
 
+const taskName = "typescript";
+
 export function build_typescript(build:$util.Build, tsconfig:string|Object, tslint:string|Object, options:$main.ITypeScriptOptions, items:$task.ITypeScriptItem[], singleFile:boolean)
 {
     for (const i of items) {
-        build.logBuildFile(i.dst);
+        build.logBuildFile(taskName, i.dst);
     }
 
     (new TypeScriptBuild(build)).Build(tsconfig, tslint, options, items, singleFile);

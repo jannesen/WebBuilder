@@ -3,6 +3,8 @@ import * as $main from "../main";
 import * as $lib from "../lib/lib";
 import * as $util from "../lib/util";
 
+const taskName = "replace";
+
 interface IReplaceItem
 {
     src:        string;
@@ -10,7 +12,7 @@ interface IReplaceItem
     replace:    $main.IReplacer[];
 }
 
-export function run(build:$util.Build, config:$main.IBuildReplace[])
+export async function runAsync(build:$util.Build, config:$main.IBuildReplace[])
 {
     const   items:IReplaceItem[] = [];
 
@@ -47,7 +49,7 @@ export function run(build:$util.Build, config:$main.IBuildReplace[])
 
     if (!build.rebuild) {
         statemap = new Map<string, IReplaceItem>();
-        for (const s of build.getState<IReplaceItem>()) {
+        for (const s of build.getState<IReplaceItem>(taskName)) {
             statemap.set(s.dst, s);
         }
     }
@@ -74,12 +76,12 @@ export function run(build:$util.Build, config:$main.IBuildReplace[])
         }
     }
 
-    build.setState(state);
+    build.setState(taskName, state);
 }
 
 function build_replace(build:$util.Build, item:IReplaceItem)
 {
-    build.logBuildFile(item.dst);
+    build.logBuildFile(taskName, item.dst);
 
     let data = $fs.readFileSync(item.src, "utf8");
 

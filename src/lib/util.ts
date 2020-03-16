@@ -89,7 +89,6 @@ export class Build
     private     _state_file:            string;
     private     _errors:                number;
     private     _state:                 any;
-    private     _curTask:               string|undefined;
     private     _targets:               ITargetDirectory;
 
     public get  rebuild()
@@ -228,17 +227,13 @@ export class Build
         }
     }
 
-    public      runTask(name:string, config:any)
+    public async runTaskAsync(name:string, config:any)
     {
-        this._curTask = name;
-
         try {
-            require("../task/" + name + ".js").run(this, config);
+            await require("../task/" + name + ".js").runAsync(this, config);
         } catch (e) {
-            console.log(this._curTask + " failed: " + e.message);
+            console.log(name + " failed: " + e.message);
         }
-
-        this._curTask = undefined;
     }
     public      resolveName(fn:string):string
     {
@@ -427,30 +422,24 @@ export class Build
             }
         }
     }
-    public      getState<T>()
+    public      getState<T>(name:string)
     {
-        if (!this._curTask) {
-            throw new Error("Invalid state this._curTask is undefined.");
-        }
-        return (this._state[this._curTask] || []) as T[];
+        return (this._state[name] || []) as T[];
     }
-    public      setState(state:any)
+    public      setState(name:string, state:any)
     {
-        if (!this._curTask) {
-            throw new Error("Invalid state this._curTask is undefined.");
-        }
-        this._state[this._curTask] = state;
+        this._state[name] = state;
     }
-    public      logDebug(msg:string)
+    public      logDebug(name:string, msg:string)
     {
         if (this._diagoutput) {
-            console.log("Debug " + this._curTask + ": " + msg);
+            console.log("Debug " + name + ": " + msg);
         }
     }
-    public      logBuildFile(fn:string)
+    public      logBuildFile(name:string, fn:string)
     {
         if (this._diagoutput) {
-            console.log("Build " + this._curTask + ": " + $path.relative(this._dst_path, fn));
+            console.log("Build " + name + ": " + $path.relative(this._dst_path, fn));
         }
     }
     public      logWarning(msg:string)

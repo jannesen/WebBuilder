@@ -3,6 +3,8 @@ import * as $main from "../main";
 import * as $lib from "../lib/lib.js";
 import * as $util from "../lib/util.js";
 
+const taskName = "typescript";
+
 interface ITypeScriptStep
 {
     items:          ITypeScriptItem[];
@@ -20,7 +22,7 @@ export interface ITypeScriptItem
     options?:   $main.ITypeScriptOptions;
 }
 
-export function run(build:$util.Build, config:$main.IBuildTypeScript[]) {
+export async function runAsync(build:$util.Build, config:$main.IBuildTypeScript[]) {
     const   steps:ITypeScriptStep[] = [];
 
     for (const config_item of config) {
@@ -96,7 +98,7 @@ export function run(build:$util.Build, config:$main.IBuildTypeScript[]) {
     if (!build.rebuild) {
         statemap = new Map<string, ITypeScriptItem>();
 
-        for (const s of build.getState<ITypeScriptItem>()) {
+        for (const s of build.getState<ITypeScriptItem>(taskName)) {
             statemap.set(s.dst, s);
         }
     }
@@ -136,5 +138,5 @@ export function run(build:$util.Build, config:$main.IBuildTypeScript[]) {
         }
     }
 
-    build.setState(state);
+    build.setState(taskName, state);
 }

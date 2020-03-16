@@ -2,13 +2,15 @@
 import * as $main from "../main";
 import * as $util from "../lib/util";
 
+const taskName = "copy";
+
 interface ICopyItem
 {
     src:        string;
     dst:        string;
 }
 
-export function run(build:$util.Build, config:$main.IBuildCopy[])
+export async function runAsync(build:$util.Build, config:$main.IBuildCopy[])
 {
     const   items:ICopyItem[] = [];
 
@@ -44,7 +46,7 @@ export function run(build:$util.Build, config:$main.IBuildCopy[])
                 continue;
             }
 
-            build.logBuildFile(item.dst);
+            build.logBuildFile(taskName, item.dst);
             $util.file_copy(item.src, item.dst);
         } catch(e) {
             build.logError("Failed to copy '" + item.src + "' to '" + item.dst + "': " + e.message);

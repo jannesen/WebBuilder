@@ -2,6 +2,8 @@
 import * as $lib from "../lib/lib.js";
 import * as $util from "../lib/util.js";
 
+const taskName = "sass";
+
 export interface ISassItem
 {
     src:        string;
@@ -10,7 +12,7 @@ export interface ISassItem
     options:    $main.ISassOptions|undefined;
 }
 
-export function run(build:$util.Build, config:$main.IBuildSass[]) {
+export async function runAsync(build:$util.Build, config:$main.IBuildSass[]) {
     const   items:ISassItem[] = [];
 
     for (const config_item of config) {
@@ -43,7 +45,7 @@ export function run(build:$util.Build, config:$main.IBuildSass[]) {
 
     if (!build.rebuild) {
         statemap = new Map<string, ISassItem>();
-        for (const s of build.getState<ISassItem>()) {
+        for (const s of build.getState<ISassItem>(taskName)) {
             statemap.set(s.dst, s);
         }
     }
@@ -66,5 +68,5 @@ export function run(build:$util.Build, config:$main.IBuildSass[]) {
         state.push(item);
     }
 
-    build.setState(state);
+    build.setState(taskName, state);
 }
