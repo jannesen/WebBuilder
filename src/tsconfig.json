@@ -15,6 +15,7 @@
         "sourceMap":            true,
         "inlineSources":        true,
         "outDir":               "../lib",
-        "baseUrl":              "."
+        "baseUrl":              ".",
+        "lib":                  ["webworker"]
     }
 }
