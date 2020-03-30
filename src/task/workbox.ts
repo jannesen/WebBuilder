@@ -6,6 +6,7 @@ const taskName = "workbox";
 
 interface IWorkBoxFile {
     dst: string;
+    output: string[];
     cache: IFileInfo[];
 }
 
@@ -27,7 +28,6 @@ export async function runAsync(build:$util.Build, config:$workbox.GenerateSWConf
     const state:IWorkBoxFile[] = [];
 
     for (const config_item of config) {
-
         // Transform globignores to library glob
         const ignores = [];
         if (config_item.globIgnores !== null) {
@@ -42,26 +42,22 @@ export async function runAsync(build:$util.Build, config:$workbox.GenerateSWConf
         // Get all files that should be cached.
         const cache_files = build.glob(build.dst_path, fullGlob);
 
+        const curState = statemap && statemap.get(build.dst_path);
         // Set up new state
         const newState = {
             dst: build.dst_path,
+            output: curState ? curState.output : [],
             cache: cache_files.map((fn) => ({ fn: fn, ts: $util.file_stat(fn)!.mtime.getTime() }))
         };
 
-        // find workbox files
-        const workBoxFiles = build.glob(build.dst_path, [ "*.js", "*.map"]);
-
         // Check if service worker should be generated again.
-        if (!(statemap && $lib.compare_recursive(statemap.get(build.dst_path), newState))) {
-            await $workbox.generateSW(config_item).then((val) => {
-                for (const url of val.filePaths) {
-                    build.define_dstfile(url);
-                }
-            });
-        } else {
-            for (const url of workBoxFiles) {
-                build.define_dstfile(url);
-            }
+        if (!(curState && $lib.compare_recursive(curState, newState))) {
+            newState.output = (await require("workbox-build").generateSW(config_item)).filePaths;
+        }
+
+        // Registrate output files.
+        for (const url of newState.output) {
+            build.define_dstfile(url);
         }
 
         state.push(newState);
