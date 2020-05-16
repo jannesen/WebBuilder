@@ -5,6 +5,7 @@
     <ProjectGuid>b81852cf-622e-4395-b3f2-fabdec419640</ProjectGuid>
     <TypeScriptToolsVersion>2.9</TypeScriptToolsVersion>
   </PropertyGroup>
+  <Import Project="..\TypeScript\TypeScript.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'" Label="Configuration">
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'" Label="Configuration">
