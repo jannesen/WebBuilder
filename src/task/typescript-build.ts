@@ -127,7 +127,7 @@ class TypeScriptBuild
                 try {
                     const templateFile = this.program.getSourceFile(templateInterfacePath);
                     if (!templateFile) {
-                        throw new Error("Unknown file '" + templateFile + "' in program.");
+                        throw new Error("Can't find '" + templateInterfacePath + "' in program files.");
                     }
 
                     const tc              = this.program.getTypeChecker();

@@ -158,32 +158,46 @@ export interface ITypeScriptOptions
 
 export const args = new $util.Args();
 
+try {
+    if (!args.parse(process.argv)) {
+        process.exit(1);
+    }
+} catch (e) {
+    console.error("Parse args failed.", e);
+    process.exit(1);
+}
+
 export async function build(...buildconfig:IBuildConfig[])
 {
-    const   start  = (new Date()).getTime();
-    let     errors = 0;
+    try {
+        const   start  = (new Date()).getTime();
+        let     errors = 0;
 
-    for (let i = 0 ; errors === 0 && i < (buildconfig as IBuildConfig[]).length ; ++i) {
-        const bc = (buildconfig as IBuildConfig[])[i];
-        const build = new $util.Build(bc.global);
+        for (let i = 0 ; errors === 0 && i < (buildconfig as IBuildConfig[]).length ; ++i) {
+            const bc = (buildconfig as IBuildConfig[])[i];
+            const build = new $util.Build(bc.global);
 
-        for(const name of ["css", "sass", "js", "typescript", "replace", "copy", "appcache", "workbox", "touch"]) {
-            if ((bc as any)[name]) {
-                await build.runTaskAsync(name, (bc as any)[name]);
+            for(const name of ["css", "sass", "js", "typescript", "replace", "copy", "appcache", "workbox", "touch"]) {
+                if ((bc as any)[name]) {
+                    await build.runTaskAsync(name, (bc as any)[name]);
+                }
             }
+
+            if (build.errors === 0) {
+                build.saveState();
+                build.checkTarget();
+            }
+
+            errors += build.errors;
         }
 
-        if (build.errors === 0) {
-            build.saveState();
-            build.checkTarget();
-        }
-
-        errors += build.errors;
+        console.log("Build: " + (errors ? "failed" : "done") + " in " + (((new Date()).getTime() - start) / 1000.0).toFixed(3).replace(".", ",") + " sec.");
+        process.exit(errors > 0 ? 1 : 0);
+    } catch(e) {
+        console.error("Build failed.", e);
+        process.exit(1);
     }
 
-    console.log("Build: " + (errors ? "failed" : "done") + " in " + (((new Date()).getTime() - start) / 1000.0).toFixed(3).replace(".", ",") + " sec.");
-
-    process.exit(errors > 0 ? 1 : 0);
 }
 
 export const path_join  = $util.path_join;

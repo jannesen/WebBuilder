@@ -41,10 +41,8 @@ export class Args
         return this._diagoutput;
     }
 
-    constructor()
+    public          parse(argv:string[])
     {
-        const argv = process.argv;
-
         for (let i = 2 ; i < argv.length ; ++i) {
             const argn = argv[i].split("=", 2);
             switch(argn[0]) {
@@ -67,9 +65,16 @@ export class Args
                     }
                 }
                 break;
-            default:                throw new Error("Unknown option: '" + argn[0] + "'.");
+            case "--help":
+                console.log("BuildJS [--rebuild] [--release] [--diagoutput] [/Configuration=<Configuration>]");
+                return false;
+            default:
+                console.log("Unknown option: '" + argn[0] + "'.");
+                return false;
             }
         }
+
+        return true;
     }
 }
 
