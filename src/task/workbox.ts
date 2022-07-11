@@ -1,6 +1,6 @@
-﻿import * as $lib from "../lib/lib";
-import * as $util from "../lib/util";
-import * as $workbox from "workbox-build";
+import * as $lib     from "../lib/lib";
+import * as $util    from "../lib/util";
+import type * as $buildconfig    from "../buildconfig";
 
 const taskName = "workbox";
 
@@ -15,7 +15,7 @@ interface IFileInfo {
     ts: number;
 }
 
-export async function runAsync(build:$util.Build, config:$workbox.GenerateSWConfig[]) {
+export async function runAsync(build:$util.Build, config:$buildconfig.IWorkbox[]) {
     let statemap:Map<string, IWorkBoxFile> | undefined;
 
     if (!build.rebuild) {
@@ -52,7 +52,7 @@ export async function runAsync(build:$util.Build, config:$workbox.GenerateSWConf
 
         // Check if service worker should be generated again.
         if (!(curState && $lib.compare_recursive(curState, newState))) {
-            newState.output = (await require("workbox-build").generateSW(config_item)).filePaths;
+            newState.output = (await (require("workbox-build")).generateSW(config_item)).filePaths;
         }
 
         // Registrate output files.

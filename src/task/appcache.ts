@@ -1,9 +1,10 @@
-﻿import * as $fs from "fs";
-import * as $path from "path";
+import * as $fs     from "fs";
+import * as $path   from "path";
 import * as $crypto from "crypto";
-import * as $main from "../main";
-import * as $lib from "../lib/lib";
-import * as $util from "../lib/util";
+import * as $main   from "../main";
+import * as $lib    from "../lib/lib";
+import * as $util   from "../lib/util";
+import type * as $buildconfig    from "../buildconfig";
 
 const taskName = "appcache";
 
@@ -19,7 +20,7 @@ interface IFileInfo
     ts:     number;
 }
 
-export async function runAsync(build:$util.Build, config:$main.IBuildAppCache[])
+export async function runAsync(build:$util.Build, config:$buildconfig.IAppCache[])
 {
     let statemap:Map<string, IAppCacheFile>|undefined;
 
@@ -59,7 +60,7 @@ export async function runAsync(build:$util.Build, config:$main.IBuildAppCache[])
                          "*\n\n" +
                          "#HASH: " + md5sum.digest("hex").toUpperCase();
 
-            $util.write_file(dst, data);
+            await $util.writeFileAsync(dst, data);
         }
 
         state.push(newState);

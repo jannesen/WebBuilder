@@ -1,4 +1,4 @@
-﻿interface IHashTableData<TKey, TData>
+interface IHashTableData<TKey, TData>
 {
     hash:       number;
     key:        TKey;
@@ -7,7 +7,7 @@
 
 export class HashTable<TKey, TData>
 {
-    private     _hashtable:     Array<IHashTableData<TKey, TData> | Array<IHashTableData<TKey, TData>> | undefined>;
+    private     _hashtable:     (IHashTableData<TKey, TData> | IHashTableData<TKey, TData>[] | undefined)[];
 
                 constructor(n?:number)
     {
@@ -36,17 +36,19 @@ export class HashTable<TKey, TData>
             this._hashtable[n] = { hash, key, data };
         } else {
             if (Array.isArray(this._hashtable[n])) {
-                if ((this._hashtable[n] as Array<IHashTableData<TKey, TData>>).findIndex((r) => (r.hash === hash && compare_recursive(r.key, key)) ) >= 0 )
+                if ((this._hashtable[n] as IHashTableData<TKey, TData>[]).findIndex((r) => (r.hash === hash && compare_recursive(r.key, key))) >= 0) {
                     throw new Error("Key already added.");
+                }
             } else {
                 if ((this._hashtable[n] as IHashTableData<TKey, TData>).hash === hash &&
-                    compare_recursive((this._hashtable[n] as IHashTableData<TKey, TData>).key, key))
+                    compare_recursive((this._hashtable[n] as IHashTableData<TKey, TData>).key, key)) {
                     throw new Error("Key already added.");
+                }
 
                 this._hashtable[n] = [ (this._hashtable[n] as IHashTableData<TKey, TData>)];
             }
 
-            (this._hashtable[n] as Array<IHashTableData<TKey, TData>>).push({ hash, key, data });
+            (this._hashtable[n] as IHashTableData<TKey, TData>[]).push({ hash, key, data });
         }
     }
 
@@ -143,13 +145,15 @@ export function hash_of(o:any):number
 
 export function compare_recursive(o1:any, o2:any):boolean
 {
-    if (typeof o1 !== typeof o2)
+    if (typeof o1 !== typeof o2) {
         return false;
+    }
 
     if (typeof o1 === "object") {
         if (Array.isArray(o1)) {
-            if (o1.length !== o2.length)
+            if (o1.length !== o2.length) {
                 return false;
+            }
 
             for (let i = 0 ; i < o1.length ; ++i) {
                 if (!compare_recursive(o1[i], o2[i])) {

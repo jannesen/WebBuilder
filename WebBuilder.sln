@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29123.88
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2286C783-8279-485C-B9A4-1E666CCB004B}") = "BuildJS", "BuildJS.nbuildproj", "{B81852CF-622E-4395-B3F2-FABDEC419640}"
+Project("{2286C783-8279-485C-B9A4-1E666CCB004B}") = "WebBuilder", "WebBuilder.nbuildproj", "{B81852CF-622E-4395-B3F2-FABDEC419640}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

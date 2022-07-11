@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+	<PropertyGroup>
+		<NBuildProjectBuild Condition="'$(NBuildProjectBuild)'==''">$(MSBuildExtensionsPath)\Jannesen.NBuildProject\</NBuildProjectBuild>
+		<ProjectGuid>b81852cf-622e-4395-b3f2-fabdec419640</ProjectGuid>
+		<LanchType>node</LanchType>
+		<LanchExec>..\..\node.exe</LanchExec>
+		<LanchCwd>..\jc3</LanchCwd>
+		<LanchArgs>'webbuilder\file.js'</LanchArgs>
+		<LanchEnv>BUILDJS=$(MSBuildProjectDirectory);NODE_PATH=$(MSBuildProjectDirectory)\node_modules</LanchEnv>
+		<LanchSourceMaps>.\lib\**</LanchSourceMaps>
+	</PropertyGroup>
+	<Import Project="..\TypeScript\TypeScript.props" />
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'" Label="Configuration">
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'" Label="Configuration">
+	</PropertyGroup>
+	<Import Project="$(NBuildProjectBuild)NBuildProject.props" />
+	<ItemGroup>
+		<File Include="*" />
+		<File Include="src\**\*" />
+	</ItemGroup>
+	<ItemGroup>
+		<File Remove="BuildJS.sln" />
+	</ItemGroup>
+	<Import Project="$(NBuildProjectBuild)NBuildProject.targets" />
+	<Target Name="Clean">
+		<CleanTargetTree ProjectDirectory="$(MSBuildProjectDirectory)" TargetDirectory=".\lib" />
+	</Target>
+	<Target Name="Build">
+		<ProcessBuild ProjectDirectory="$(MSBuildProjectDirectory)" ProcessBuildConfig="$(MSBuildProjectDirectory)\build.config" />
+	</Target>
+	<Target Name="Rebuild">
+		<CallTarget Targets="Clean" />
+		<CallTarget Targets="Build" />
+	</Target>
+</Project>

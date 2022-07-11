@@ -1,8 +1,10 @@
-﻿import * as $fs from "fs";
-import * as $path from "path";
-import * as $glob from "glob";
-import * as $minimatch from "minimatch";
-import * as $main from "../main";
+import * as $fs             from "fs";
+import * as $util           from "util";
+import * as $path           from "path";
+import * as $glob           from "glob";
+import * as $minimatch      from "minimatch";
+import * as $main           from "../main";
+import * as $buildconfig    from "../buildconfig";
 
 const process_cwd = process.cwd();
 
@@ -13,8 +15,16 @@ interface ITargetDirectory
 
 export interface ISrcTarget
 {
-    path:       string;
-    name:       string;
+    srcpath:        string;
+    targetname:     string;
+}
+
+export interface IFileItem<T>
+{
+    srcfilename:    string;
+    dstfilename:    string;
+    targetname:     string;
+    item:           T;
 }
 
 export class Args
@@ -85,7 +95,8 @@ export class Build
     private     _flavor:                string;
     private     _lint:                  boolean;
     private     _diagoutput:            boolean;
-    private     _paths:                 $main.IPaths;
+    private     _paths:                 $buildconfig.IPaths;
+    private     _root_path:             string;
     private     _src_path:              string;
     private     _dst_path:              string;
     private     _sourcemap_path:        string;
@@ -112,7 +123,8 @@ export class Build
     {
         return this._lint;
     }
-    public get  diagoutput() {
+    public get  diagoutput()
+    {
         return this._diagoutput;
     }
     public get  sourcemap()
@@ -122,6 +134,10 @@ export class Build
     public get  sourcemap_inlinesrc()
     {
         return this._sourcemap_inlinesrc;
+    }
+    public get  root_path()
+    {
+        return this._root_path;
     }
     public get  src_path()
     {
@@ -136,7 +152,7 @@ export class Build
         return this._errors;
     }
 
-                constructor(global:$main.IBuildGlobal)
+                constructor(global:$buildconfig.IGlobal)
     {
         let rebuild              = false;
         let release              = global.release;
@@ -147,9 +163,10 @@ export class Build
         let sourcemap_root       = global.sourcemap_root;
         let sourcemap_inlinesrc  = global.sourcemap_inlinesrc;
 
-        this._src_path            = path_join(global.src_path);
-        this._dst_path            = path_join(global.dst_path);
-        this._state_file          = path_join(global.state_file || (this._dst_path + "/build.state"));
+        this._root_path           = path_join(global.root_path);;
+        this._src_path            = path_join(this._root_path, global.src_path);
+        this._dst_path            = path_join(this._root_path, global.dst_path);
+        this._state_file          = path_join(this._root_path, global.state_file || (this._dst_path + "/build.state"));
         this._errors              = 0;
         this._state               = {};
         this._targets             = {};
@@ -162,7 +179,7 @@ export class Build
         if (release    === undefined)           release = false;
         if (lint       === undefined)           lint    = release;
         if (flavor     === undefined)           flavor  = "";
-        if (sourcemap_path          )           sourcemap_path = path_join(this._src_path, sourcemap_path);
+        if (sourcemap_path)                     sourcemap_path = path_join(this._src_path, sourcemap_path);
         if (!sourcemap_root && sourcemap_path)  sourcemap_root = "/sources/";
         if (!sourcemap_inlinesrc)               sourcemap_inlinesrc = !release;
 
@@ -171,7 +188,12 @@ export class Build
         this._flavor               = flavor;
         this._lint                 = lint;
         this._diagoutput           = diagoutput;
-        this._paths                = global.paths;
+
+        this._paths = {};
+        for (const n in global.paths) {
+            this._paths[n] = path_join(this._root_path, global.paths[n]);
+        }
+
         this._sourcemap_path       = sourcemap_path;
         this._sourcemap_root       = sourcemap_root;
         this._sourcemap_inlinesrc  = sourcemap_inlinesrc;
@@ -181,7 +203,7 @@ export class Build
                 if ($fs.existsSync(this._state_file)) {
                     this._state = JSON.parse($fs.readFileSync(this._state_file, { encoding:"utf8" }));
                 }
-            } catch(e) {
+            } catch(e:any) {
                 console.log("Reading statefile failed: " + e.message);
             }
         }
@@ -240,31 +262,125 @@ export class Build
             console.log(name + " failed: " + e.message);
         }
     }
-    public      resolveName(fn:string):string
+    public      parallelAsync<T extends IFileItem<any>>(items:T[], handler: (item:T)=>Promise<void>, nparallel:number)
     {
-        if (fn.startsWith("$")) {
-            let i = fn.indexOf("/");
-            if (i < 0) i = fn.length;
-            const n = fn.substring(1, i);
-            const p = this._paths && this._paths[n];
-
-            if (typeof p !== "string") {
-                throw new Error("Unknown path '$" + n + "'.");
-            }
-
-            fn = p + fn.substr(i);
+        const self = this;
+        const enum Status {
+            Waiting,
+            Running,
+            Success,
+            Failed
         }
 
-        return path_join(this._src_path, fn);
+        if (items.length === 0) {
+            return Promise.resolve();
+        }
+
+        return new Promise((resolve) =>{
+                    const itemStatus = (new Array<Status>(items.length)).fill(Status.Waiting);
+                    let ndone    = 0;
+                    let nstarted = 0;
+
+                    while (nstarted < items.length && nstarted < nparallel) {
+                        start(nstarted++);
+                    }
+
+                    function start(n:number) {
+                        itemStatus[n] = Status.Running;
+
+                        handler(items[n]).then(() => {
+                                                   done(n, Status.Success);
+                                               },
+                                               (err) => {
+                                                   self.logError(items[n].srcfilename + ": build handler failer: " + err.message);
+                                                   done(n, Status.Failed);
+                                               });
+                    }
+                    function done(n:number, result:Status) {
+                        if (itemStatus[n] === Status.Running) {
+                            itemStatus[n] = result;
+                            ++ndone;
+
+                            if (nstarted < items.length) {
+                                start(nstarted++);
+                            }
+                            else {
+                                if (ndone >= items.length) {
+                                    resolve(undefined);
+                                }
+                            }
+                        }
+                    }
+               });
     }
-    public      src(item:$main.IBuildItem)
+    public      resolvePath(path:string, fn:string):string
     {
-        return this.src1(item.src_base, item.src, undefined);
+        if (fn.startsWith("$")) {
+            return this.resolvePathFilename(fn);
+        }
+
+        return path_join(path, fn);
     }
-    public      src1(base:string|undefined, pattern:string|$main.ISrcFilter|(string|$main.ISrcFilter)[], target:string|undefined)
+    public      resolvePathFilename(pathfn:string):string
+    {
+        let i = pathfn.indexOf("/");
+        if (i < 0) i = pathfn.length;
+        const n = pathfn.substring(1, i);
+        const p = this._paths && this._paths[n];
+
+        if (typeof p !== "string") {
+            throw new Error("Unknown path '$" + n + "'.");
+        }
+
+        return p + pathfn.substr(i);
+    }
+    public      fileitems<T extends $buildconfig.IBuildItem>(items:readonly T[], targetrename?:(filename:string)=>string): IFileItem<T>[]
+    {
+        const rtn:IFileItem<T>[] = [];
+
+        for (const item of items) {
+            const dst = this.dst(item);
+
+            if (dst.endsWith("/")) {
+                for (const file of this.src(this._src_path, item)) {
+                    let targetname = file.targetname;
+                    if (targetrename) {
+                        targetname = targetrename(targetname);
+                    }
+
+                    rtn.push({
+                        srcfilename: item_src(file.srcpath, item),
+                        dstfilename: dst + targetname,
+                        targetname:  targetname,
+                        item:        item
+                    });
+                }
+            } else {
+                if (typeof item.src !== "string" || isGlob(item.src)) {
+                    throw new Error("Invalid dst '" + item.dst + "': must by a directory.");
+                }
+
+                rtn.push({
+                    srcfilename: item_src(path_join(this.src_path, item.src), item),
+                    dstfilename: dst,
+                    targetname:  dst,
+                    item:        item
+                });
+            }
+        }
+
+        rtn.sort((i1, i2) => (i1.dstfilename < i2.dstfilename ? -1 : i1.dstfilename > i2.dstfilename ? 1 : 0));
+
+        return rtn;
+    }
+    public      src(path:string, item:$buildconfig.IBuildItem)
+    {
+        return this.src1(path, undefined, item.src, undefined);
+    }
+    private     src1(path:string, base:string|undefined, pattern:string|$buildconfig.ISrcFilter|(string|$buildconfig.ISrcFilter)[], target:string|undefined)
     {
         if (typeof pattern === "string") {
-            return this.src2(base, pattern, undefined);
+            return this.src2(path, base, pattern, undefined);
         }
 
         if (Array.isArray(pattern)) {
@@ -282,29 +398,29 @@ export class Build
             }
 
             if (nobj > 0 && nstr === 0) {
-                const rtn = [] as ISrcTarget[];
+                const rtn:ISrcTarget[] = [];
                 pattern.forEach((p) => {
-                                    this.src1(base, p, target).forEach((r) => rtn.push(r));
+                                    this.src1(path, base, p, target).forEach((r) => rtn.push(r));
                                 });
                 return rtn;
             }
 
             if (nstr > 0 && nobj === 0) {
-                return this.src2(base, pattern as string[], undefined);
+                return this.src2(path, base, pattern as string[], undefined);
             }
 
             throw new Error("Invalid src.");
         }
 
         if (pattern instanceof Object) {
-            return this.src2((pattern as $main.ISrcFilter).base || base, (pattern as $main.ISrcFilter).pattern, (pattern as $main.ISrcFilter).target);
+            return this.src2(path, pattern.base, pattern.pattern, pattern.target);
         }
 
         throw new Error("Src not defined.");
     }
-    public      src2(base:string|undefined, pattern:string|string[], target:string|undefined):ISrcTarget[]
+    private     src2(path:string, base:string|undefined, pattern:string|string[], target:string|undefined):ISrcTarget[]
     {
-        let cwd = base ? this.resolveName(base) : this._src_path;
+        let cwd = base ? this.resolvePath(path, base) : path;
         if (!cwd.endsWith("/")) {
             cwd += "/";
         }
@@ -318,19 +434,21 @@ export class Build
         }
 
         return this.glob(cwd, pattern).map((name) => {
-                                        if (!name.startsWith(cwd))
+                                        if (!name.startsWith(cwd)) {
                                             throw new Error("'" + name + "' outside base '" + cwd + "'.");
+                                        }
 
                                         return {
-                                                path: name,
-                                                name: target + name.substring(cwd.length)
+                                                srcpath:    name,
+                                                targetname: target + name.substring(cwd.length)
                                               };
                                       });
     }
     public      glob(cwd:string, patterns:string|string[]):string[]
     {
-        if (!(typeof patterns === "string" || Array.isArray(patterns)))
+        if (!(typeof patterns === "string" || Array.isArray(patterns))) {
             throw new Error("Invalid glob pattern, expect string or array.");
+        }
 
         if (cwd.endsWith("/") || cwd.endsWith("\\")) {
             cwd = cwd.substring(0, cwd.length - 1);
@@ -383,11 +501,12 @@ export class Build
 
         return files;
     }
-    public      dst(item:$main.IBuildItem):string
+    public      dst(item:$buildconfig.IBuildItem):string
     {
         if (item.dst !== undefined) {
-            if (typeof item.dst !== "string")
+            if (typeof item.dst !== "string") {
                 throw new Error("Invalid dst: expect string.");
+            }
 
             return path_join(this._dst_path, item.dst);
         }
@@ -396,6 +515,7 @@ export class Build
     }
     public      sourcemap_map(srcfn:string):string
     {
+        //return 'file:///'+srcfn;
         return this._sourcemap_root + $path.relative(this._sourcemap_path, srcfn).replace(/\\/g, "/");
     }
     public      define_dstfile(...dstfns:(string|undefined)[])
@@ -482,12 +602,13 @@ export class Build
     }
 }
 
-export function isUpdateToDate(dstfn:string, ...srcfns:(string|string[]|undefined)[] )
+export function isUpdateToDate(dstfn:string, ...srcfns:(string|string[]|undefined)[])
 {
     const dst_s = file_stat(dstfn);
 
-    if (!dst_s)
+    if (!dst_s) {
         return false;
+    }
 
     for (const srcfn of srcfns) {
         if (srcfn) {
@@ -495,14 +616,16 @@ export function isUpdateToDate(dstfn:string, ...srcfns:(string|string[]|undefine
                 for (const sfn of srcfn) {
                     const s = file_stat(sfn);
 
-                    if (!(s && s.mtime.getTime() < dst_s.mtime.getTime()))
+                    if (!(s && s.mtime.getTime() < dst_s.mtime.getTime())) {
                         return false;
+                    }
                 }
             } else {
                 const s = file_stat(srcfn);
 
-                if (!(s && s.mtime.getTime() < dst_s.mtime.getTime()))
+                if (!(s && s.mtime.getTime() < dst_s.mtime.getTime())) {
                     return false;
+                }
             }
         }
     }
@@ -527,14 +650,15 @@ export function path_join(...args:string[]):string
     let p:string|undefined;
 
     for (i = args.length - 1 ; i >= 0 ; --i) {
-        if (args[i] && ($path as any).isAbsolute(args[i])) {
+        if (args[i] && $path.isAbsolute(args[i])) {
             p = args[i];
             break;
         }
     }
 
-    if (p === undefined)
+    if (p === undefined) {
         p = process_cwd;
+    }
 
     for (++i ; i < args.length ; ++i) {
         if (args[i]) {
@@ -550,8 +674,9 @@ export function file_stat(fn:string)
     try {
         return $fs.statSync(fn);
     } catch (e) {
-        if (e.code === "ENOENT")
+        if (e.code === "ENOENT") {
             return null;
+        }
 
         throw e;
     }
@@ -582,8 +707,9 @@ export function path_make(fn:string)
             try {
                 $fs.mkdirSync(fn);
             } catch(e2) {
-                if (e2.code !== "EEXIST")
+                if (e2.code !== "EEXIST") {
                     throw new Error("Failed to create directory '" + fn + "': " + e2.message);
+                }
             }
             return ;
 
@@ -600,11 +726,20 @@ export function touch(fn:string) {
     $fs.utimesSync(fn, s.atime, new Date());
 }
 
-export function write_file(fn:string, data:string, compare?:boolean)
+export const readFileAsync = $util.promisify($fs.readFile);
+
+export const writeFileAsync = $util.promisify($fs.writeFile);
+
+export function readTextFileSync(fn:string)
+{
+    return $fs.readFileSync(fn, { encoding:"utf8" });
+}
+
+export function writeTextFileSync(fn:string, data:string, compare?:boolean)
 {
     if (compare) {
         try {
-            if (data === $fs.readFileSync(fn, "utf8")) {
+            if (data === readTextFileSync(fn)) {
                 return ;
             }
         } catch(e) {
@@ -614,10 +749,24 @@ export function write_file(fn:string, data:string, compare?:boolean)
     $fs.writeFileSync(fn, data, { encoding:"utf8" });
 }
 
-export function file_copy(src_filename:string, dst_filename:string)
+export async function writeTextFileAsync(fn:string, data:string, compare?:boolean)
+{
+    if (compare) {
+        try {
+            if (data === await readFileAsync(fn, "utf8")) {
+                return ;
+            }
+        } catch(e) {
+        }
+    }
+    path_make($path.dirname(fn));
+    await writeFileAsync(fn, data, { encoding:"utf8" });
+}
+
+export async function fileCopyAsync(src_filename:string, dst_filename:string)
 {
     path_make($path.dirname(dst_filename));
-    $fs.writeFileSync(dst_filename, $fs.readFileSync(src_filename, { encoding:null }), { encoding:null });
+    await writeFileAsync(dst_filename, await readFileAsync(src_filename, { encoding:null }), { encoding:null });
 }
 
 class TargetScan
@@ -678,4 +827,14 @@ class TargetScan
             $fs.rmdirSync(name);
         }
     }
+}
+
+function item_src(src:string, config:$buildconfig.IBuildItem)
+{
+    if (config.allow_user_override) {
+        if (isFile(src + ".user")) {
+            src += ".user";
+        }
+    }
+    return src;
 }

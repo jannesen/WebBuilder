@@ -1,21 +1,25 @@
-﻿{
+{
     "compilerOptions": {
-        "target":               "es2017",
-        "module":               "none",
-        "noErrorTruncation":    true,
-        "noImplicitAny":        true,
-        "noImplicitThis":       true,
-        "noUnusedLocals":       true,
-        "noUnusedParameters":   true,
-        "alwaysStrict":         true,
-        "strict":               true,
-        "preserveConstEnums":   false,
-        "removeComments":       true,
-        "moduleResolution":     "node",
-        "sourceMap":            true,
-        "inlineSources":        true,
-        "outDir":               "../lib",
-        "baseUrl":              ".",
-        "lib":                  ["webworker"]
+        "target": "ES2021",
+        "module": "CommonJS",
+        "lib": [
+            "ES2021"
+        ],
+        "noErrorTruncation": true,
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "noUnusedLocals": false,
+        "noUnusedParameters": true,
+        "alwaysStrict": true,
+        "strict": true,
+        "preserveConstEnums": false,
+        "removeComments": true,
+        "moduleResolution": "node",
+        "sourceMap": true,
+        "inlineSources": false,
+        "useUnknownInCatchVariables": false,
+        "outDir": "../lib",
+        "baseUrl": ".",
+        "types": [ "node" ]
     }
 }

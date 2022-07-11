@@ -1,12 +1,14 @@
-﻿import * as $main from "../main";
-import * as $util from "../lib/util";
+import * as $util           from "../lib/util";
+import type * as $buildconfig    from "../buildconfig";
 
 const taskName = "touch";
 
-export async function runAsync(build:$util.Build, config:$main.BuildTouch)
+export function runAsync(build:$util.Build, config:$buildconfig.Touch)
 {
-    for (const fn of build.glob(build.dst_path, config))    {
+    for (const fn of build.glob(build.dst_path, config)) {
         build.logBuildFile(taskName, fn);
         $util.touch(fn);
     }
+
+    return Promise.resolve();
 }
