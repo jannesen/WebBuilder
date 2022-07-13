@@ -1,4 +1,2 @@
 .vs
-lib
-node_modules
 *.csproj.user
