@@ -1,2 +1,4 @@
 .vs
 *.csproj.user
+node_modules/
+/lib/tsconfig.tsbuildinfo

@@ -581,7 +581,8 @@ async function eslintrun(build:$util.Build, buildcfg:ITypeScriptBuildCfg)
     const parserOptions:$eslint.Linter.ParserOptions = {
               warnOnUnsupportedTypeScriptVersion: false,
               tsconfigRootDir:                    buildcfg.base_src,
-              ecmaVersion:                        2020
+              //ecmaVersion:                        2020,
+              project:                            buildcfg.base_src + '/tsconfig.json'
           };
 
     if (typeof buildcfg.tsconfig === 'string') {
