@@ -44,7 +44,7 @@
         "glob": "8.0.3",
         "minimatch": "5.1.0",
         "sass": "1.53.0",
-        "terser": "5.14.1",
+        "terser": "5.14.2",
         "typescript": "file:../TypeScript",
         "workbox-build": "6.5.3"
     }
