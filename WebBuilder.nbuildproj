@@ -6,16 +6,20 @@
 		<LanchType>node</LanchType>
 		<LanchExec>..\..\node.exe</LanchExec>
 		<LanchCwd>..\jc3</LanchCwd>
-		<LanchArgs>'webbuilder\file.js'</LanchArgs>
-		<LanchEnv>BUILDJS=$(MSBuildProjectDirectory);NODE_PATH=$(MSBuildProjectDirectory)\node_modules</LanchEnv>
+		<LanchArgs>'webbuilderfile.js'</LanchArgs>
+		<LanchEnv>WEBBUILDER=$(MSBuildProjectDirectory);NODE_PATH=$(MSBuildProjectDirectory)\node_modules</LanchEnv>
 		<LanchSourceMaps>.\lib\**</LanchSourceMaps>
 	</PropertyGroup>
+    
 	<Import Project="..\TypeScript\TypeScript.props" />
+    
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'" Label="Configuration">
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'" Label="Configuration">
 	</PropertyGroup>
+    
 	<Import Project="$(NBuildProjectBuild)NBuildProject.props" />
+    
 	<ItemGroup>
 		<File Include="*" />
 		<File Include="src\**\*" />
@@ -23,6 +27,7 @@
 	<ItemGroup>
 		<File Remove="BuildJS.sln" />
 	</ItemGroup>
+    
 	<Import Project="$(NBuildProjectBuild)NBuildProject.targets" />
 	<Target Name="Clean">
 		<CleanTargetTree ProjectDirectory="$(MSBuildProjectDirectory)" TargetDirectory=".\lib" />
