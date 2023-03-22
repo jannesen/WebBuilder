@@ -32,6 +32,8 @@ export class Args
     private     _rebuild:               boolean|undefined;
     private     _release:               boolean|undefined;
     private     _flavor:                string|undefined;
+    private     _outdir:                string|undefined;
+    private     _version:               string|undefined;
     private     _diagoutput:            boolean|undefined;
 
 
@@ -46,6 +48,14 @@ export class Args
     public get  flavor()
     {
         return this._flavor;
+    }
+    public get  outdir()
+    {
+        return this._outdir;
+    }
+    public get  version()
+    {
+        return this._version;
     }
     public get  diagoutput() {
         return this._diagoutput;
@@ -75,6 +85,19 @@ export class Args
                     }
                 }
                 break;
+
+            case "/Flavor":
+                this._flavor = argn[1];
+                break;
+
+            case "/OutDir":
+                this._outdir = argn[1];
+                break;
+
+            case "/Version":
+                this._version = argn[1];
+                break;
+
             case "--help":
                 console.log("BuildJS [--rebuild] [--release] [--diagoutput] [/Configuration=<Configuration>]");
                 return false;
@@ -154,6 +177,10 @@ export class Build
 
                 constructor(global:$buildconfig.IGlobal)
     {
+        if (!global.dst_path) {
+            throw new Error("global.dst_path not set.");
+        }
+
         let rebuild              = false;
         let release              = global.release;
         let flavor               = global.flavor;
@@ -166,7 +193,7 @@ export class Build
         this._root_path           = path_join(global.root_path);;
         this._src_path            = path_join(this._root_path, global.src_path);
         this._dst_path            = path_join(this._root_path, global.dst_path);
-        this._state_file          = path_join(this._root_path, global.state_file || (this._dst_path + "/build.state"));
+        this._state_file          = path_join(this._root_path, global.state_file || (this._dst_path + "/.buildstate"));
         this._errors              = 0;
         this._state               = {};
         this._targets             = {};
