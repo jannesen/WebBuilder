@@ -1,7 +1,7 @@
 @ echo off
 setlocal
 
-cd %~dp0
+cd /d %~dp0
 
 if exist "%~dp0..\..\node_modules\TypeScript" set NODE_PATH="%~dp0..\..\node_modules"
 if exist "%~dp0..\node_modules\TypeScript"    set NODE_PATH="%~dp0..\node_modules"

@@ -18,6 +18,7 @@
         "sourceMap": true,
         "inlineSources": false,
         "useUnknownInCatchVariables": false,
+        "newLine": "lf",
         "outDir": "../lib",
         "baseUrl": ".",
         "types": [ "node" ]

@@ -161,4 +161,3 @@ export async function runAsync(build:$util.Build, config:$buildconfig.ISass[])
 
     build.setState(taskName, newStates);
 }
-
