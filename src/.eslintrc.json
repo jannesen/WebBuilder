@@ -75,7 +75,7 @@
         "@typescript-eslint/space-before-function-paren": ["error", {"asyncArrow": "always", "anonymous": "always", "named": "never" }],
         "@typescript-eslint/triple-slash-reference": "error",
         "@typescript-eslint/unified-signatures": "error",
-       
+
         // eslint-plugin-import
         "import/no-extraneous-dependencies": ["error", { "optionalDependencies": false }],
 
