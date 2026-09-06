@@ -596,7 +596,7 @@ async function eslintrun(build:$util.Build, buildcfg:ITypeScriptBuildCfg)
                        baseConfig: {
                             parser: "@typescript-eslint/parser",
                             plugins: [
-                                "@typescript-eslint", "jsdoc", "import"
+                                "@typescript-eslint", "import"
                             ],
                             env: {
                                 browser: true,
